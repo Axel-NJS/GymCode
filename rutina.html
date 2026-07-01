@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#14161a">
+<title>Rutina · Axel</title>
+<style>
+  :root{
+    --bg:#142030;
+    --bg-elev:#182739;
+    --card:#1E3442;
+    --card-2:#24404F;
+    --border:rgba(255,92,141,0.16);
+    --text:#EFF1F3;
+    --text-dim:#7C93A6;
+    --text-faint:#48586A;
+    --accent:#FF5C8D;
+    --accent-dim:rgba(255,92,141,0.20);
+    --good:#6B93AA;
+    --good-dim:rgba(107,147,170,0.20);
+    --warn:#FF5C8D;
+    --radius:14px;
+    --mono: ui-monospace, "SF Mono", "Menlo", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; background:var(--bg); color:var(--text); font-family:var(--sans); height:100%;}
+  body{
+    padding-bottom:calc(120px + env(safe-area-inset-bottom));
+    padding-top:env(safe-area-inset-top);
+    overscroll-behavior-y:none;
+  }
+  ::selection{background:var(--accent-dim);}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(to bottom, var(--bg) 80%, transparent);
+    padding:18px 18px 8px;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--text-faint); font-weight:600; margin-bottom:2px;
+  }
+  h1{
+    font-size:26px; margin:0; font-weight:800; letter-spacing:-0.02em;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .icon-btn{
+    width:34px; height:34px; border-radius:50%; background:var(--card);
+    border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    color:var(--text-dim); font-size:15px;
+  }
+
+  nav.days{
+    display:flex; gap:8px; overflow-x:auto; padding:14px 18px 6px;
+    scrollbar-width:none;
+  }
+  nav.days::-webkit-scrollbar{display:none;}
+  .pill{
+    flex:0 0 auto; padding:8px 14px; border-radius:999px;
+    background:var(--card); border:1px solid var(--border);
+    color:var(--text-dim); font-size:13px; font-weight:600; white-space:nowrap;
+  }
+  .pill.active{ background:var(--accent); color:#142030; border-color:var(--accent); }
+
+  main{ padding:8px 18px 40px; }
+
+  .day-head{ margin:14px 2px 12px; }
+  .day-head .name{ font-size:20px; font-weight:800; letter-spacing:-0.01em; }
+  .day-head .focus{ font-size:13px; color:var(--accent); font-weight:600; margin-top:2px;}
+  .day-head .note{ font-size:12.5px; color:var(--text-dim); margin-top:6px; line-height:1.5;}
+
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px 14px 12px; margin-bottom:10px;
+  }
+  .ex-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .ex-name{ font-size:15.5px; font-weight:700; letter-spacing:-0.01em; }
+  .ex-meta{ font-size:12px; color:var(--text-dim); margin-top:3px; }
+  .ex-tag{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent);
+    font-weight:700; margin-top:1px;
+  }
+  .plate{
+    flex:0 0 auto; width:46px; height:46px; border-radius:50%;
+    border:2px solid var(--border); display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:12px; font-weight:700; color:var(--text-dim);
+    position:relative; text-align:center; line-height:1.1;
+  }
+  .plate.pr{ border-color:var(--good); color:var(--good); }
+  .plate .u{ font-size:8px; display:block; color:var(--text-faint); }
+  .plate.pr .u{ color:var(--good); }
+
+  .sets{ margin-top:12px; display:flex; flex-direction:column; gap:7px; }
+  .set-row{ display:flex; align-items:center; gap:8px; }
+  .set-idx{ width:20px; font-family:var(--mono); font-size:12px; color:var(--text-faint); }
+  .set-row input{
+    flex:1; background:var(--bg-elev); border:1px solid var(--border); border-radius:9px;
+    color:var(--text); font-family:var(--mono); font-size:15px; padding:9px 10px; width:0;
+  }
+  .set-row input::placeholder{ color:var(--text-faint); font-family:var(--sans); }
+  .set-row .x{ color:var(--text-faint); font-size:12px; }
+  .last-hint{ font-size:11px; color:var(--text-faint); margin-top:8px; font-family:var(--mono); }
+
+  .save-bar{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    padding:10px 18px calc(14px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top, var(--bg) 60%, transparent);
+  }
+  button.primary{
+    width:100%; padding:15px; border:none; border-radius:14px;
+    background:var(--accent); color:#142030; font-size:15.5px; font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  button.primary:active{ opacity:0.85; }
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(10px);
+    background:var(--card-2); border:1px solid var(--border); color:var(--text);
+    padding:10px 18px; border-radius:999px; font-size:13px; font-weight:600;
+    opacity:0; transition:all .25s ease; z-index:40; pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Historial */
+  .hist-item{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:13px 14px; margin-bottom:9px;
+  }
+  .hist-date{ font-size:12.5px; color:var(--text-dim); font-weight:600; }
+  .hist-day{ font-size:15px; font-weight:700; margin-top:2px;}
+  .hist-detail{ margin-top:8px; display:flex; flex-wrap:wrap; gap:6px; }
+  .hist-chip{
+    font-family:var(--mono); font-size:11.5px; background:var(--bg-elev);
+    border:1px solid var(--border); border-radius:8px; padding:4px 8px; color:var(--text-dim);
+  }
+  .empty{ text-align:center; padding:60px 20px; color:var(--text-faint); font-size:13.5px; }
+
+  /* Running */
+  .run-form{ display:flex; gap:8px; margin-bottom:12px; }
+  .run-form .field{ flex:1; }
+  .run-form label{ font-size:11px; color:var(--text-dim); display:block; margin-bottom:5px; }
+  .run-form input{
+    width:100%; background:var(--bg-elev); border:1px solid var(--border); border-radius:9px;
+    color:var(--text); font-family:var(--mono); font-size:15px; padding:9px 10px;
+  }
+  .pace-target{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--accent-dim); border:1px solid rgba(192,133,82,0.3); border-radius:12px;
+    padding:12px 14px; margin-bottom:14px;
+  }
+  .pace-target .cur{ font-family:var(--mono); font-size:22px; font-weight:800; color:var(--accent); }
+  .pace-target .lbl{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; }
+
+  /* Modal */
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:50;
+    display:none; align-items:flex-end;
+  }
+  .modal-bg.show{ display:flex; }
+  .modal{
+    background:var(--bg-elev); border-radius:20px 20px 0 0; width:100%;
+    padding:20px 18px calc(24px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--border);
+  }
+  .modal h3{ margin:0 0 4px; font-size:17px; }
+  .modal p{ color:var(--text-dim); font-size:12.5px; line-height:1.5; margin:0 0 12px; }
+  .modal textarea{
+    width:100%; height:110px; background:var(--card); border:1px solid var(--border);
+    border-radius:10px; color:var(--text); font-family:var(--mono); font-size:11px;
+    padding:10px; resize:none;
+  }
+  .modal .row{ display:flex; gap:8px; margin-top:12px; }
+  .modal button{
+    flex:1; padding:12px; border-radius:11px; border:1px solid var(--border);
+    background:var(--card); color:var(--text); font-size:14px; font-weight:700;
+  }
+  .modal button.go{ background:var(--accent); color:#142030; border:none; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="eyebrow">5 días · fuerza + estética</div>
+  <h1>Rutina
+    <span class="icon-btn" onclick="openBackup()">⇅</span>
+  </h1>
+</header>
+
+<nav class="days" id="dayNav"></nav>
+
+<main id="main"></main>
+
+<div class="save-bar" id="saveBar">
+  <button class="primary" onclick="saveSession()">Guardar sesión de hoy</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="modalTitle">Respaldo</h3>
+    <p id="modalDesc">Copia este texto y pégalo en Notas. Si pierdes tus datos, pégalo aquí y pulsa Restaurar.</p>
+    <textarea id="modalArea" placeholder="Pega aquí tu respaldo..."></textarea>
+    <div class="row">
+      <button onclick="closeBackup()">Cerrar</button>
+      <button class="go" id="modalAction" onclick="copyBackup()">Copiar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA: RUTINA ---------- */
+const ROUTINE = [
+  { id:'push_a', name:'Push A', focus:'Pecho + hombro + tríceps', note:'Prioriza técnica en press plano; sube peso solo si mantienes rango completo.',
+    exercises:[
+      {name:'Press banca plano (barra)', tag:'Pecho', sets:4, reps:'6-8'},
+      {name:'Press inclinado mancuernas', tag:'Pecho', sets:3, reps:'8-10'},
+      {name:'Aperturas cable / crossover', tag:'Pecho', sets:3, reps:'12-15'},
+      {name:'Press militar mancuernas', tag:'Hombro', sets:3, reps:'8-10'},
+      {name:'Elevaciones laterales', tag:'Hombro', sets:4, reps:'12-15'},
+      {name:'Extensión tríceps polea (cuerda)', tag:'Tríceps', sets:3, reps:'12-15'},
+      {name:'Fondos en máquina / press francés', tag:'Tríceps', sets:3, reps:'10-12'},
+    ]},
+  { id:'pull_a', name:'Pull A', focus:'Espalda ancho + bíceps', note:'Enfócate en sentir dorsal, no solo mover peso. Escápulas activas.',
+    exercises:[
+      {name:'Dominadas / jalón agarre ancho', tag:'Espalda', sets:4, reps:'6-10'},
+      {name:'Remo polea baja agarre neutro', tag:'Espalda', sets:3, reps:'10-12'},
+      {name:'Pull-over en polea', tag:'Espalda', sets:3, reps:'12-15'},
+      {name:'Face pull', tag:'Hombro post.', sets:3, reps:'15'},
+      {name:'Curl barra Z', tag:'Bíceps', sets:3, reps:'8-10'},
+      {name:'Curl martillo mancuernas', tag:'Bíceps', sets:3, reps:'10-12'},
+      {name:'Curl concentrado', tag:'Bíceps', sets:2, reps:'12'},
+    ]},
+  { id:'legs', name:'Piernas', focus:'Piernas + core', note:'Volumen moderado a propósito — cuidas las piernas para el running.',
+    exercises:[
+      {name:'Sentadilla (barra / Smith)', tag:'Cuádriceps', sets:4, reps:'8-10'},
+      {name:'Prensa 45°', tag:'Cuádriceps', sets:3, reps:'10-12'},
+      {name:'Peso muerto rumano mancuernas', tag:'Isquios', sets:3, reps:'10'},
+      {name:'Extensión de cuádriceps', tag:'Cuádriceps', sets:3, reps:'12-15'},
+      {name:'Curl femoral', tag:'Isquios', sets:3, reps:'12-15'},
+      {name:'Elevación de talones', tag:'Gemelos', sets:4, reps:'15-20'},
+      {name:'Plancha + elevación piernas', tag:'Core', sets:3, reps:'30-45s'},
+    ]},
+  { id:'push_b', name:'Push B', focus:'Hombro + pecho superior', note:'Aquí se construye el "cap" de hombro — clave para la V estética.',
+    exercises:[
+      {name:'Press militar barra (de pie)', tag:'Hombro', sets:4, reps:'6-8'},
+      {name:'Press inclinado máquina / barra', tag:'Pecho', sets:3, reps:'8-10'},
+      {name:'Elevaciones laterales en polea', tag:'Hombro', sets:4, reps:'15'},
+      {name:'Press Arnold mancuernas', tag:'Hombro', sets:3, reps:'10'},
+      {name:'Pec deck (aperturas máquina)', tag:'Pecho', sets:3, reps:'12-15'},
+      {name:'Extensión tríceps sobre cabeza', tag:'Tríceps', sets:3, reps:'10-12'},
+      {name:'Fondos en paralelas', tag:'Tríceps', sets:3, reps:'AMRAP'},
+    ]},
+  { id:'pull_b', name:'Pull B', focus:'Espalda grosor + brazos', note:'Más peso, menos reps en remo — esto da grosor y densidad.',
+    exercises:[
+      {name:'Remo con barra / Pendlay row', tag:'Espalda', sets:4, reps:'6-8'},
+      {name:'Jalón al pecho agarre cerrado', tag:'Espalda', sets:3, reps:'10-12'},
+      {name:'Remo en máquina (Hammer)', tag:'Espalda', sets:3, reps:'10'},
+      {name:'Encogimientos mancuernas', tag:'Trapecio', sets:3, reps:'12'},
+      {name:'Curl barra Z (pesado)', tag:'Bíceps', sets:4, reps:'6-8'},
+      {name:'Curl inclinado mancuernas', tag:'Bíceps', sets:3, reps:'10-12'},
+      {name:'Curl de muñeca', tag:'Antebrazo', sets:2, reps:'15'},
+    ]},
+  { id:'running', name:'Running', focus:'Velocidad · de 8:00 a 6:00 /km', note:'1-2 sesiones cortas por semana, sin restar prioridad al gym.',
+    running:true },
+  { id:'hist', name:'Historial', focus:'', note:'', history:true },
+];
+
+/* ---------- STORAGE ---------- */
+const KEY = 'axel_training_log_v1';
+function loadData(){
+  try{ return JSON.parse(localStorage.getItem(KEY)) || {sessions:[], runs:[]}; }
+  catch(e){ return {sessions:[], runs:[]}; }
+}
+function saveData(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
+let DATA = loadData();
+
+let activeDay = ROUTINE[0].id;
+let draft = {}; // in-memory inputs for current day before saving
+
+/* ---------- NAV ---------- */
+function renderNav(){
+  const nav = document.getElementById('dayNav');
+  nav.innerHTML = ROUTINE.map(d =>
+    `<div class="pill ${d.id===activeDay?'active':''}" onclick="selectDay('${d.id}')">${d.name}</div>`
+  ).join('');
+}
+function selectDay(id){
+  activeDay = id;
+  draft = {};
+  renderNav();
+  renderMain();
+}
+
+/* ---------- HELPERS ---------- */
+function lastLogFor(exName){
+  for(let i=DATA.sessions.length-1;i>=0;i--){
+    const s = DATA.sessions[i];
+    const ex = s.exercises.find(e=>e.name===exName);
+    if(ex && ex.sets.length) return {date:s.date, sets:ex.sets};
+  }
+  return null;
+}
+function bestWeight(sets){
+  return sets.reduce((m,s)=> s.w!=null && s.w>m ? s.w : m, 0);
+}
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-PE',{day:'2-digit', month:'short'});
+}
+
+/* ---------- RENDER MAIN ---------- */
+function renderMain(){
+  const day = ROUTINE.find(d=>d.id===activeDay);
+  const main = document.getElementById('main');
+  const saveBar = document.getElementById('saveBar');
+
+  if(day.history){ saveBar.style.display='none'; renderHistory(main); return; }
+  if(day.running){ saveBar.style.display='none'; renderRunning(main); return; }
+  saveBar.style.display='block';
+
+  let html = `<div class="day-head">
+      <div class="name">${day.name}</div>
+      <div class="focus">${day.focus}</div>
+      <div class="note">${day.note}</div>
+    </div>`;
+
+  day.exercises.forEach((ex, exi) => {
+    const last = lastLogFor(ex.name);
+    const lastBest = last ? bestWeight(last.sets) : null;
+    let rows = '';
+    for(let i=0;i<ex.sets;i++){
+      rows += `<div class="set-row">
+        <span class="set-idx">${i+1}</span>
+        <input type="number" inputmode="decimal" placeholder="kg" onInput="setDraft('${day.id}',${exi},${i},'w',this.value)">
+        <span class="x">×</span>
+        <input type="number" inputmode="numeric" placeholder="reps" onInput="setDraft('${day.id}',${exi},${i},'r',this.value)">
+      </div>`;
+    }
+    html += `<div class="card">
+      <div class="ex-row">
+        <div>
+          <div class="ex-tag">${ex.tag}</div>
+          <div class="ex-name">${ex.name}</div>
+          <div class="ex-meta">${ex.sets} series × ${ex.reps} reps</div>
+        </div>
+        <div class="plate">${lastBest ? lastBest : '–'}<span class="u">${lastBest?'kg':''}</span></div>
+      </div>
+      <div class="sets">${rows}</div>
+      ${last ? `<div class="last-hint">Último (${fmtDate(last.date)}): ${last.sets.map(s=>s.w!=null?s.w+'kg×'+(s.r??'?'):null).filter(Boolean).join(' · ')}</div>` : ''}
+    </div>`;
+  });
+
+  main.innerHTML = html;
+}
+
+function setDraft(dayId, exi, seti, field, value){
+  draft[exi] = draft[exi] || {};
+  draft[exi][seti] = draft[exi][seti] || {};
+  draft[exi][seti][field] = value === '' ? null : Number(value);
+}
+
+function saveSession(){
+  const day = ROUTINE.find(d=>d.id===activeDay);
+  const exercises = day.exercises.map((ex, exi) => {
+    const sets = [];
+    for(let i=0;i<ex.sets;i++){
+      const d = (draft[exi] && draft[exi][i]) || {};
+      if(d.w!=null || d.r!=null) sets.push({w:d.w??null, r:d.r??null});
+    }
+    return {name:ex.name, sets};
+  }).filter(e=>e.sets.length);
+
+  if(!exercises.length){ showToast('No hay datos para guardar'); return; }
+
+  DATA.sessions.push({date:new Date().toISOString(), day:day.name, exercises});
+  saveData(DATA);
+  draft = {};
+  showToast('Sesión guardada ✓');
+  renderMain();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1800);
+}
+
+/* ---------- HISTORIAL ---------- */
+function renderHistory(main){
+  if(!DATA.sessions.length && !DATA.runs.length){
+    main.innerHTML = `<div class="empty">Aún no guardas ninguna sesión.<br>Entrena y registra tus pesos para verlos aquí.</div>`;
+    return;
+  }
+  const items = [
+    ...DATA.sessions.map(s=>({...s, kind:'gym'})),
+    ...DATA.runs.map(r=>({...r, kind:'run'}))
+  ].sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+  main.innerHTML = `<div class="day-head"><div class="name">Historial</div></div>` +
+    items.map(it=>{
+      if(it.kind==='run'){
+        return `<div class="hist-item">
+          <div class="hist-date">${fmtDate(it.date)}</div>
+          <div class="hist-day">🏃 Running</div>
+          <div class="hist-detail"><span class="hist-chip">${it.distance} km</span><span class="hist-chip">${it.timeStr}</span><span class="hist-chip">${it.pace} /km</span></div>
+        </div>`;
+      }
+      const chips = it.exercises.map(e=>{
+        const best = bestWeight(e.sets);
+        return `<span class="hist-chip">${e.name.split(' ').slice(0,2).join(' ')}: ${best}kg</span>`;
+      }).join('');
+      return `<div class="hist-item">
+        <div class="hist-date">${fmtDate(it.date)}</div>
+        <div class="hist-day">${it.day}</div>
+        <div class="hist-detail">${chips}</div>
+      </div>`;
+    }).join('');
+}
+
+/* ---------- RUNNING ---------- */
+function renderRunning(main){
+  const bestPace = DATA.runs.length ? DATA.runs.reduce((best,r)=> r.paceSec < best ? r.paceSec : best, DATA.runs[0].paceSec) : null;
+  main.innerHTML = `
+    <div class="day-head">
+      <div class="name">Running</div>
+      <div class="focus">Objetivo: 6:00 /km</div>
+      <div class="note">1-2 sesiones cortas por semana. Alterna series (intervalos) y tempo run. No compite con los días de gym, es complemento.</div>
+    </div>
+    <div class="pace-target">
+      <div>
+        <div class="lbl">Mejor pace registrado</div>
+        <div class="cur">${bestPace ? secToPace(bestPace) : '8:00'} /km</div>
+      </div>
+      <div style="text-align:right">
+        <div class="lbl">Meta</div>
+        <div class="cur" style="color:var(--good)">6:00</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:10px;">Registrar carrera</div>
+      <div class="run-form">
+        <div class="field"><label>Distancia (km)</label><input id="rDist" type="number" inputmode="decimal" placeholder="5"></div>
+        <div class="field"><label>Tiempo (min)</label><input id="rMin" type="number" inputmode="numeric" placeholder="40"></div>
+        <div class="field"><label>Tiempo (seg)</label><input id="rSec" type="number" inputmode="numeric" placeholder="00"></div>
+      </div>
+      <button class="primary" onclick="saveRun()">Guardar carrera</button>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:8px;">Sesión A · Series (velocidad)</div>
+      <div class="ex-meta">6-8 × 400m fuerte / 200m trote suave. Objetivo en series: bajar progresivamente hacia 2:00-2:15 por 400m.</div>
+    </div>
+    <div class="card">
+      <div class="ex-name" style="margin-bottom:8px;">Sesión B · Tempo run</div>
+      <div class="ex-meta">20-25 min continuos a ritmo incómodo-sostenible. Empieza cerca de 7:00/km y ve bajando cada 2-3 semanas.</div>
+    </div>
+  `;
+}
+function secToPace(totalSec){
+  const m = Math.floor(totalSec/60), s = Math.round(totalSec%60);
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+function saveRun(){
+  const dist = Number(document.getElementById('rDist').value);
+  const min = Number(document.getElementById('rMin').value)||0;
+  const sec = Number(document.getElementById('rSec').value)||0;
+  if(!dist || (!min && !sec)){ showToast('Completa distancia y tiempo'); return; }
+  const totalSec = min*60+sec;
+  const paceSec = totalSec/dist;
+  DATA.runs.push({
+    date:new Date().toISOString(),
+    distance:dist,
+    timeStr:`${min}:${sec.toString().padStart(2,'0')} min`,
+    pace: secToPace(paceSec),
+    paceSec
+  });
+  saveData(DATA);
+  showToast('Carrera guardada ✓');
+  renderRunning(document.getElementById('main'));
+}
+
+/* ---------- BACKUP / RESTORE ---------- */
+function openBackup(){
+  document.getElementById('modalTitle').textContent = 'Respaldar mis datos';
+  document.getElementById('modalDesc').textContent = 'Copia este texto y pégalo en Notas. Si algún día pierdes tu registro, pégalo de vuelta aquí y pulsa Restaurar.';
+  document.getElementById('modalArea').value = JSON.stringify(DATA);
+  document.getElementById('modalAction').textContent = 'Copiar';
+  document.getElementById('modalAction').onclick = copyBackup;
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeBackup(){ document.getElementById('modalBg').classList.remove('show'); }
+function copyBackup(){
+  const area = document.getElementById('modalArea');
+  area.select();
+  try{ document.execCommand('copy'); showToast('Copiado ✓'); }catch(e){}
+  if(navigator.clipboard){ navigator.clipboard.writeText(area.value).catch(()=>{}); }
+  // switch action to allow restore too from same sheet
+  document.getElementById('modalDesc').textContent = '¿Restaurando en otro lugar? Pega tu respaldo aquí y pulsa Restaurar.';
+  document.getElementById('modalAction').textContent = 'Restaurar';
+  document.getElementById('modalAction').onclick = restoreBackup;
+}
+function restoreBackup(){
+  const val = document.getElementById('modalArea').value;
+  try{
+    const parsed = JSON.parse(val);
+    if(!parsed.sessions || !parsed.runs) throw new Error('formato inválido');
+    DATA = parsed;
+    saveData(DATA);
+    showToast('Datos restaurados ✓');
+    closeBackup();
+    renderMain();
+  }catch(e){
+    showToast('Texto inválido, revisa el pegado');
+  }
+}
+
+/* ---------- INIT ---------- */
+renderNav();
+renderMain();
+</script>
+</body>
+</html>
