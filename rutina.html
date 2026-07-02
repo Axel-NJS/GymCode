@@ -22,6 +22,8 @@
     --good:#6B93AA;
     --good-dim:rgba(107,147,170,0.20);
     --warn:#FF5C8D;
+    --btn-text:#142030;
+    --primary-btn-bg:#FF5C8D;
     --radius:14px;
     --mono: ui-monospace, "SF Mono", "Menlo", monospace;
     --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
@@ -64,7 +66,7 @@
     background:var(--card); border:1px solid var(--border);
     color:var(--text-dim); font-size:13px; font-weight:600; white-space:nowrap;
   }
-  .pill.active{ background:var(--accent); color:#142030; border-color:var(--accent); }
+  .pill.active{ background:var(--accent); color:var(--btn-text); border-color:var(--accent); }
 
   main{ padding:8px 18px 40px; }
 
@@ -112,7 +114,7 @@
   }
   button.primary{
     width:100%; padding:15px; border:none; border-radius:14px;
-    background:var(--accent); color:#142030; font-size:15.5px; font-weight:800;
+    background:var(--primary-btn-bg); color:var(--btn-text); font-size:15.5px; font-weight:800;
     letter-spacing:-0.01em;
   }
   button.primary:active{ opacity:0.85; }
@@ -177,15 +179,33 @@
     flex:1; padding:12px; border-radius:11px; border:1px solid var(--border);
     background:var(--card); color:var(--text); font-size:14px; font-weight:700;
   }
-  .modal button.go{ background:var(--accent); color:#142030; border:none; }
+  .modal button.go{ background:var(--accent); color:var(--btn-text); border:none; }
+
+  .palette-card{
+    display:flex; align-items:center; gap:12px; padding:12px; border-radius:12px;
+    background:var(--card); border:1.5px solid var(--border); text-align:left;
+    width:100%; color:var(--text);
+  }
+  .palette-card.selected{ border-color:var(--accent); }
+  .palette-swatches{ display:flex; flex:0 0 auto; }
+  .palette-swatches span{
+    width:20px; height:32px; display:block; margin-left:-8px;
+    border:2px solid var(--bg-elev); border-radius:6px;
+  }
+  .palette-swatches span:first-child{ margin-left:0; }
+  .palette-name{ font-size:14px; font-weight:700; }
+  .palette-check{ margin-left:auto; font-size:16px; color:var(--accent); }
 </style>
 </head>
 <body>
 
 <header class="top">
-  <div class="eyebrow">5 días · fuerza + estética</div>
-  <h1>Rutina
-    <span class="icon-btn" onclick="openBackup()">⇅</span>
+  <div class="eyebrow">DO EPIC SHIT</div>
+  <h1>Viltrumite Routine
+    <span style="display:flex; gap:8px;">
+      <span class="icon-btn" onclick="openPalettes()">⚙️</span>
+      <span class="icon-btn" onclick="openBackup()">⇅</span>
+    </span>
   </h1>
 </header>
 
@@ -197,6 +217,17 @@
   <button class="primary" onclick="saveSession()">Guardar sesión de hoy</button>
 </div>
 <div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="paletteModalBg">
+  <div class="modal">
+    <h3>Paleta de colores</h3>
+    <p>Elige el estilo visual de la app.</p>
+    <div id="paletteList" style="display:flex; flex-direction:column; gap:10px; margin-top:6px;"></div>
+    <div class="row">
+      <button onclick="closePalettes()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-bg" id="modalBg">
   <div class="modal">
@@ -517,7 +548,66 @@ function restoreBackup(){
   }
 }
 
+/* ---------- PALETAS ---------- */
+const PALETTES = {
+  aurora: {
+    name:'Aurora',
+    vars:{
+      '--bg':'#142030', '--bg-elev':'#182739', '--card':'#1E3442', '--card-2':'#24404F',
+      '--border':'rgba(255,92,141,0.16)', '--text':'#EFF1F3', '--text-dim':'#7C93A6',
+      '--text-faint':'#48586A', '--accent':'#FF5C8D', '--accent-dim':'rgba(255,92,141,0.20)',
+      '--good':'#6B93AA', '--good-dim':'rgba(107,147,170,0.20)', '--warn':'#FF5C8D', '--btn-text':'#142030',
+      '--primary-btn-bg':'#FF5C8D'
+    },
+    swatches:['#142030','#FF5C8D','#6B93AA']
+  },
+  viltrumite: {
+    name:'Evangelion',
+    vars:{
+      '--bg':'#1D2331', '--bg-elev':'#20273A', '--card':'#242C42', '--card-2':'#2A3350',
+      '--border':'rgba(139,83,254,0.24)', '--text':'#F2F0FF', '--text-dim':'#8B93B0',
+      '--text-faint':'#525A78', '--accent':'#8B53FE', '--accent-dim':'rgba(139,83,254,0.22)',
+      '--good':'#8EFF01', '--good-dim':'rgba(142,255,1,0.18)', '--warn':'#8B53FE', '--btn-text':'#1D2331',
+      '--primary-btn-bg':'#8EFF01'
+    },
+    swatches:['#1D2331','#8B53FE','#8EFF01']
+  }
+};
+const PALETTE_KEY = 'axel_palette_v1';
+
+function applyPalette(key, skipSave){
+  const p = PALETTES[key];
+  if(!p) return;
+  const root = document.documentElement.style;
+  Object.entries(p.vars).forEach(([k,v]) => root.setProperty(k, v));
+  if(!skipSave) localStorage.setItem(PALETTE_KEY, key);
+  renderPaletteList(key);
+}
+
+function renderPaletteList(activeKey){
+  const list = document.getElementById('paletteList');
+  if(!list) return;
+  list.innerHTML = Object.entries(PALETTES).map(([key, p]) => `
+    <button class="palette-card ${key===activeKey?'selected':''}" onclick="applyPalette('${key}')">
+      <span class="palette-swatches">${p.swatches.map(c=>`<span style="background:${c}"></span>`).join('')}</span>
+      <span class="palette-name">${p.name}</span>
+      ${key===activeKey?'<span class="palette-check">✓</span>':''}
+    </button>
+  `).join('');
+}
+
+function openPalettes(){
+  const current = localStorage.getItem(PALETTE_KEY) || 'aurora';
+  renderPaletteList(current);
+  document.getElementById('paletteModalBg').classList.add('show');
+}
+function closePalettes(){
+  document.getElementById('paletteModalBg').classList.remove('show');
+}
+
 /* ---------- INIT ---------- */
+const savedPalette = localStorage.getItem(PALETTE_KEY);
+if(savedPalette) applyPalette(savedPalette, true);
 renderNav();
 renderMain();
 </script>
