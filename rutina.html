@@ -309,7 +309,16 @@ function saveData(d){ localStorage.setItem(KEY, JSON.stringify(d)); }
 let DATA = loadData();
 
 let activeDay = ROUTINE[0].id;
-let draft = {}; // in-memory inputs for current day before saving
+const DRAFT_KEY = 'axel_draft_v1';
+function loadAllDrafts(){
+  try{ return JSON.parse(localStorage.getItem(DRAFT_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+let allDrafts = loadAllDrafts(); // { dayId: { exi: { seti: {w,r} } } }
+function currentDraft(){
+  allDrafts[activeDay] = allDrafts[activeDay] || {};
+  return allDrafts[activeDay];
+}
 
 /* ---------- NAV ---------- */
 function renderNav(){
@@ -320,7 +329,6 @@ function renderNav(){
 }
 function selectDay(id){
   activeDay = id;
-  draft = {};
   renderNav();
   renderMain();
 }
@@ -361,13 +369,20 @@ function renderMain(){
   day.exercises.forEach((ex, exi) => {
     const last = lastLogFor(ex.name);
     const lastBest = last ? bestWeight(last.sets) : null;
+    const dayDraft = currentDraft();
     let rows = '';
     for(let i=0;i<ex.sets;i++){
+      const lastSet = last && last.sets[i] ? last.sets[i] : null;
+      const wPlaceholder = lastSet && lastSet.w!=null ? `kg / ${lastSet.w}` : 'kg';
+      const rPlaceholder = lastSet && lastSet.r!=null ? `reps / ${lastSet.r}` : 'reps';
+      const dVal = (dayDraft[exi] && dayDraft[exi][i]) || {};
+      const wVal = dVal.w!=null ? `value="${dVal.w}"` : '';
+      const rVal = dVal.r!=null ? `value="${dVal.r}"` : '';
       rows += `<div class="set-row">
         <span class="set-idx">${i+1}</span>
-        <input type="number" inputmode="decimal" placeholder="kg" onInput="setDraft('${day.id}',${exi},${i},'w',this.value)">
+        <input type="number" inputmode="decimal" placeholder="${wPlaceholder}" ${wVal} onInput="setDraft('${day.id}',${exi},${i},'w',this.value)">
         <span class="x">×</span>
-        <input type="number" inputmode="numeric" placeholder="reps" onInput="setDraft('${day.id}',${exi},${i},'r',this.value)">
+        <input type="number" inputmode="numeric" placeholder="${rPlaceholder}" ${rVal} onInput="setDraft('${day.id}',${exi},${i},'r',this.value)">
       </div>`;
     }
     html += `<div class="card">
@@ -380,7 +395,6 @@ function renderMain(){
         <div class="plate">${lastBest ? lastBest : '–'}<span class="u">${lastBest?'kg':''}</span></div>
       </div>
       <div class="sets">${rows}</div>
-      ${last ? `<div class="last-hint">Último (${fmtDate(last.date)}): ${last.sets.map(s=>s.w!=null?s.w+'kg×'+(s.r??'?'):null).filter(Boolean).join(' · ')}</div>` : ''}
     </div>`;
   });
 
@@ -388,27 +402,33 @@ function renderMain(){
 }
 
 function setDraft(dayId, exi, seti, field, value){
-  draft[exi] = draft[exi] || {};
-  draft[exi][seti] = draft[exi][seti] || {};
-  draft[exi][seti][field] = value === '' ? null : Number(value);
+  const d = allDrafts[dayId] = allDrafts[dayId] || {};
+  d[exi] = d[exi] || {};
+  d[exi][seti] = d[exi][seti] || {};
+  d[exi][seti][field] = value === '' ? null : Number(value);
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(allDrafts));
 }
 
 function saveSession(){
   const day = ROUTINE.find(d=>d.id===activeDay);
+  const dayDraft = allDrafts[activeDay] || {};
   const exercises = day.exercises.map((ex, exi) => {
     const sets = [];
+    let hasData = false;
     for(let i=0;i<ex.sets;i++){
-      const d = (draft[exi] && draft[exi][i]) || {};
-      if(d.w!=null || d.r!=null) sets.push({w:d.w??null, r:d.r??null});
+      const d = (dayDraft[exi] && dayDraft[exi][i]) || {};
+      if(d.w!=null || d.r!=null) hasData = true;
+      sets.push({w:d.w??null, r:d.r??null});
     }
-    return {name:ex.name, sets};
-  }).filter(e=>e.sets.length);
+    return {name:ex.name, sets, hasData};
+  }).filter(e=>e.hasData).map(e=>({name:e.name, sets:e.sets}));
 
   if(!exercises.length){ showToast('No hay datos para guardar'); return; }
 
   DATA.sessions.push({date:new Date().toISOString(), day:day.name, exercises});
   saveData(DATA);
-  draft = {};
+  delete allDrafts[activeDay];
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(allDrafts));
   showToast('Sesión guardada ✓');
   renderMain();
 }
