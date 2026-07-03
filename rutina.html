@@ -150,7 +150,7 @@
   }
   .pace-target{
     display:flex; justify-content:space-between; align-items:center;
-    background:var(--accent-dim); border:1px solid rgba(192,133,82,0.3); border-radius:12px;
+    background:var(--accent-dim); border:1px solid var(--accent-dim); border-radius:12px;
     padding:12px 14px; margin-bottom:14px;
   }
   .pace-target .cur{ font-family:var(--mono); font-size:22px; font-weight:800; color:var(--accent); }
@@ -591,6 +591,17 @@ const PALETTES = {
       '--primary-btn-bg':'#8EFF01'
     },
     swatches:['#1D2331','#8B53FE','#8EFF01']
+  },
+  orbital: {
+    name:'Orbital',
+    vars:{
+      '--bg':'#EAE7DD', '--bg-elev':'#F1EEE4', '--card':'#FFFFFF', '--card-2':'#F3F1E9',
+      '--border':'rgba(23,21,18,0.12)', '--text':'#171512', '--text-dim':'#726C5E',
+      '--text-faint':'#A9A292', '--accent':'#F2551C', '--accent-dim':'rgba(242,85,28,0.14)',
+      '--good':'#F2551C', '--good-dim':'rgba(242,85,28,0.14)', '--warn':'#F2551C', '--btn-text':'#171512',
+      '--primary-btn-bg':'#D9F015'
+    },
+    swatches:['#EAE7DD','#F2551C','#D9F015']
   }
 };
 const PALETTE_KEY = 'axel_palette_v1';
