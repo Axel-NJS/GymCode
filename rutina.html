@@ -62,15 +62,19 @@
   }
   nav.days::-webkit-scrollbar{display:none;}
   .pill{
-    flex:0 0 auto; padding:8px 14px; border-radius:999px;
+    flex:0 0 auto; padding:6px 14px; border-radius:16px;
     background:var(--card); border:1px solid var(--border);
     color:var(--text-dim); font-size:13px; font-weight:600; white-space:nowrap;
+    display:flex; flex-direction:column; align-items:center; gap:1px; text-align:center;
   }
+  .pill-num{ font-size:9.5px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.75; }
+  .pill-name{ font-size:13px; font-weight:700; }
   .pill.active{ background:var(--accent); color:var(--btn-text); border-color:var(--accent); }
 
   main{ padding:8px 18px 40px; }
 
   .day-head{ margin:14px 2px 12px; }
+  .day-head .day-num{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); font-weight:700; margin-bottom:3px; }
   .day-head .name{ font-size:20px; font-weight:800; letter-spacing:-0.01em; }
   .day-head .focus{ font-size:13px; color:var(--accent); font-weight:600; margin-top:2px;}
   .day-head .note{ font-size:12.5px; color:var(--text-dim); margin-top:6px; line-height:1.5;}
@@ -243,58 +247,74 @@
 <script>
 /* ---------- DATA: RUTINA ---------- */
 const ROUTINE = [
-  { id:'push_a', name:'Push A', focus:'Pecho + hombro + tríceps', note:'Prioriza técnica en press plano; sube peso solo si mantienes rango completo.',
+  { id:'d1', dayNum:'Día 1', name:'Push', focus:'Pecho (superior) + hombro (lateral) + tríceps (cabeza larga)', note:'Sesión pesada: 1er ejercicio compuesto de cada músculo a 6-10 reps, candidato a negativas asistidas. El resto en rango 12-15 para completar volumen.',
     exercises:[
-      {name:'Press banca plano (barra)', tag:'Pecho', sets:4, reps:'6-8'},
-      {name:'Press inclinado mancuernas', tag:'Pecho', sets:3, reps:'8-10'},
-      {name:'Aperturas cable / crossover', tag:'Pecho', sets:3, reps:'12-15'},
-      {name:'Press militar mancuernas', tag:'Hombro', sets:3, reps:'8-10'},
-      {name:'Elevaciones laterales', tag:'Hombro', sets:4, reps:'12-15'},
-      {name:'Extensión tríceps polea (cuerda)', tag:'Tríceps', sets:3, reps:'12-15'},
-      {name:'Fondos en máquina / press francés', tag:'Tríceps', sets:3, reps:'10-12'},
+      {name:'Press inclinado (barra / mancuerna)', tag:'Pecho', sets:3, reps:'6-10 · negativas'},
+      {name:'Press plano mancuerna', tag:'Pecho', sets:3, reps:'10-12'},
+      {name:'Aperturas polea baja a alta', tag:'Pecho', sets:2, reps:'12-15'},
+      {name:'Press militar mancuerna / barra', tag:'Hombro', sets:3, reps:'6-10'},
+      {name:'Elevaciones laterales', tag:'Hombro', sets:3, reps:'12-15'},
+      {name:'Elevaciones laterales en polea', tag:'Hombro', sets:2, reps:'15'},
+      {name:'Press francés / extensión sobre cabeza', tag:'Tríceps', sets:3, reps:'8-12'},
+      {name:'Fondos en paralelas', tag:'Tríceps', sets:3, reps:'8-10 · negativas'},
+      {name:'Extensión tríceps polea (cuerda)', tag:'Tríceps', sets:2, reps:'12-15'},
     ]},
-  { id:'pull_a', name:'Pull A', focus:'Espalda ancho + bíceps', note:'Enfócate en sentir dorsal, no solo mover peso. Escápulas activas.',
+  { id:'d2', dayNum:'Día 2', name:'Pull', focus:'Espalda (dorsal ancho) + hombro posterior + bíceps (cabeza larga)', note:'Dominadas / jalón como ejercicio pesado principal — buen candidato a negativas asistidas.',
     exercises:[
-      {name:'Dominadas / jalón agarre ancho', tag:'Espalda', sets:4, reps:'6-10'},
-      {name:'Remo polea baja agarre neutro', tag:'Espalda', sets:3, reps:'10-12'},
-      {name:'Pull-over en polea', tag:'Espalda', sets:3, reps:'12-15'},
-      {name:'Face pull', tag:'Hombro post.', sets:3, reps:'15'},
-      {name:'Curl barra Z', tag:'Bíceps', sets:3, reps:'8-10'},
-      {name:'Curl martillo mancuernas', tag:'Bíceps', sets:3, reps:'10-12'},
-      {name:'Curl concentrado', tag:'Bíceps', sets:2, reps:'12'},
+      {name:'Dominadas / jalón agarre ancho', tag:'Espalda', sets:3, reps:'6-10 · negativas'},
+      {name:'Remo con barra o mancuerna', tag:'Espalda', sets:3, reps:'8-12'},
+      {name:'Pull-over en polea', tag:'Espalda', sets:2, reps:'12-15'},
+      {name:'Encogimientos mancuerna / barra', tag:'Trapecio', sets:3, reps:'10-15'},
+      {name:'Aperturas posteriores (pájaros)', tag:'Hombro post.', sets:3, reps:'12-15'},
+      {name:'Face pull', tag:'Hombro post.', sets:2, reps:'15'},
+      {name:'Curl inclinado mancuerna', tag:'Bíceps', sets:3, reps:'10-12'},
+      {name:'Curl martillo', tag:'Bíceps', sets:2, reps:'10-12'},
     ]},
-  { id:'legs', name:'Piernas', focus:'Piernas + core', note:'Volumen moderado a propósito — cuidas las piernas para el running.',
+  { id:'d3', dayNum:'Día 3', name:'Legs + Core', focus:'Cuádriceps, isquiotibiales, pantorrillas y abdomen', note:'Volumen moderado — sostiene proporción general sin robar recuperación a los días prioritarios.',
     exercises:[
-      {name:'Sentadilla (barra / Smith)', tag:'Cuádriceps', sets:4, reps:'8-10'},
-      {name:'Prensa 45°', tag:'Cuádriceps', sets:3, reps:'10-12'},
-      {name:'Peso muerto rumano mancuernas', tag:'Isquios', sets:3, reps:'10'},
-      {name:'Extensión de cuádriceps', tag:'Cuádriceps', sets:3, reps:'12-15'},
-      {name:'Curl femoral', tag:'Isquios', sets:3, reps:'12-15'},
-      {name:'Elevación de talones', tag:'Gemelos', sets:4, reps:'15-20'},
-      {name:'Plancha + elevación piernas', tag:'Core', sets:3, reps:'30-45s'},
+      {name:'Sentadilla / prensa', tag:'Cuádriceps', sets:3, reps:'8-12'},
+      {name:'Extensión de cuádriceps', tag:'Cuádriceps', sets:2, reps:'12-15'},
+      {name:'Peso muerto rumano', tag:'Isquios', sets:3, reps:'8-12'},
+      {name:'Curl femoral', tag:'Isquios', sets:2, reps:'12-15'},
+      {name:'Elevación de talones de pie', tag:'Gemelos', sets:3, reps:'12-15'},
+      {name:'Abdominales con peso (polea / rueda)', tag:'Core', sets:3, reps:'12-15'},
+      {name:'Giros rusos / oblicuo lateral', tag:'Core', sets:2, reps:'15'},
     ]},
-  { id:'push_b', name:'Push B', focus:'Hombro + pecho superior', note:'Aquí se construye el "cap" de hombro — clave para la V estética.',
+  { id:'d4', dayNum:'Día 4', name:'Descanso activo', focus:'Recuperación', note:'Caminata ligera, movilidad o estiramiento suave. Nada de cargas pesadas — es para bajar fatiga sistémica antes del segundo bloque.',
+    rest:true },
+  { id:'d5', dayNum:'Día 5', name:'Push', focus:'Variante — más énfasis en hombro que en pecho, rango más metabólico', note:'Mismo grupo muscular que el Día 1 pero distinto ángulo y rango de reps (12-15+) para variar el estímulo.',
     exercises:[
-      {name:'Press militar barra (de pie)', tag:'Hombro', sets:4, reps:'6-8'},
-      {name:'Press inclinado máquina / barra', tag:'Pecho', sets:3, reps:'8-10'},
-      {name:'Elevaciones laterales en polea', tag:'Hombro', sets:4, reps:'15'},
-      {name:'Press Arnold mancuernas', tag:'Hombro', sets:3, reps:'10'},
-      {name:'Pec deck (aperturas máquina)', tag:'Pecho', sets:3, reps:'12-15'},
-      {name:'Extensión tríceps sobre cabeza', tag:'Tríceps', sets:3, reps:'10-12'},
-      {name:'Fondos en paralelas', tag:'Tríceps', sets:3, reps:'AMRAP'},
+      {name:'Press Arnold / máquina', tag:'Hombro', sets:3, reps:'10-12'},
+      {name:'Elevaciones laterales (banco inclinado)', tag:'Hombro', sets:3, reps:'15'},
+      {name:'Elevación lateral en cable (ángulo distinto)', tag:'Hombro', sets:2, reps:'15-20'},
+      {name:'Press inclinado en máquina / Smith', tag:'Pecho', sets:3, reps:'12-15'},
+      {name:'Cruce de poleas (bajo a alto)', tag:'Pecho', sets:2, reps:'15'},
+      {name:'Press cerrado en banca', tag:'Tríceps', sets:3, reps:'8-10 · negativas'},
+      {name:'Extensión unilateral en polea', tag:'Tríceps', sets:2, reps:'12-15'},
+      {name:'Plancha con peso', tag:'Core', sets:3, reps:'30-45s'},
     ]},
-  { id:'pull_b', name:'Pull B', focus:'Espalda grosor + brazos', note:'Más peso, menos reps en remo — esto da grosor y densidad.',
+  { id:'d6', dayNum:'Día 6', name:'Pull', focus:'Variante — más énfasis en amplitud / estiramiento que en grosor', note:'Mismo grupo que el Día 2, distinto ángulo: más control y rango, menos peso máximo.',
     exercises:[
-      {name:'Remo con barra / Pendlay row', tag:'Espalda', sets:4, reps:'6-8'},
-      {name:'Jalón al pecho agarre cerrado', tag:'Espalda', sets:3, reps:'10-12'},
-      {name:'Remo en máquina (Hammer)', tag:'Espalda', sets:3, reps:'10'},
-      {name:'Encogimientos mancuernas', tag:'Trapecio', sets:3, reps:'12'},
-      {name:'Curl barra Z (pesado)', tag:'Bíceps', sets:4, reps:'6-8'},
-      {name:'Curl inclinado mancuernas', tag:'Bíceps', sets:3, reps:'10-12'},
-      {name:'Curl de muñeca', tag:'Antebrazo', sets:2, reps:'15'},
+      {name:'Jalón al pecho agarre neutro / remo polea baja', tag:'Espalda', sets:3, reps:'10-12'},
+      {name:'Remo en máquina (Hammer)', tag:'Espalda', sets:3, reps:'10-12'},
+      {name:'Pull-over con mancuerna (más estiramiento)', tag:'Espalda', sets:2, reps:'12-15'},
+      {name:'Remo al mentón', tag:'Trapecio / Hombro post.', sets:2, reps:'12-15'},
+      {name:'Face pull con pausa', tag:'Hombro post.', sets:2, reps:'15'},
+      {name:'Curl concentrado / banco Scott', tag:'Bíceps', sets:3, reps:'10-12'},
+      {name:'Curl con barra Z', tag:'Bíceps', sets:2, reps:'12-15'},
     ]},
-  { id:'running', name:'Running', focus:'Velocidad · de 8:00 a 6:00 /km', note:'1-2 sesiones cortas por semana, sin restar prioridad al gym.',
-    running:true },
+  { id:'d7', dayNum:'Día 7', name:'Legs + Core', focus:'Variante — cuádriceps unilateral, glúteo/isquio, core inferior', note:'Mismo grupo que el Día 3, ángulos distintos para variar el estímulo.',
+    exercises:[
+      {name:'Sentadilla búlgara / zancadas', tag:'Cuádriceps', sets:3, reps:'10-12'},
+      {name:'Sentadilla hack / prensa (pies bajos)', tag:'Cuádriceps', sets:2, reps:'12-15'},
+      {name:'Hip thrust', tag:'Isquio / Glúteo', sets:3, reps:'10-12'},
+      {name:'Curl femoral unilateral', tag:'Isquios', sets:2, reps:'12-15'},
+      {name:'Elevación de talones sentado', tag:'Gemelos', sets:3, reps:'15'},
+      {name:'Elevación de piernas colgado', tag:'Core', sets:3, reps:'12-15'},
+      {name:'Plancha lateral con peso', tag:'Core', sets:2, reps:'12-15'},
+    ]},
+  { id:'d8', dayNum:'Día 8', name:'Descanso activo', focus:'Recuperación', note:'Igual que el Día 4 — actividad ligera y estiramiento. Al terminar este día, vuelves al Día 1.',
+    rest:true },
   { id:'hist', name:'Historial', focus:'', note:'', history:true },
 ];
 
@@ -323,7 +343,10 @@ function currentDraft(){
 function renderNav(){
   const nav = document.getElementById('dayNav');
   nav.innerHTML = ROUTINE.map(d =>
-    `<div class="pill ${d.id===activeDay?'active':''}" onclick="selectDay('${d.id}')">${d.name}</div>`
+    `<div class="pill ${d.id===activeDay?'active':''}" onclick="selectDay('${d.id}')">
+      ${d.dayNum ? `<span class="pill-num">${d.dayNum}</span>` : ''}
+      <span class="pill-name">${d.name}</span>
+    </div>`
   ).join('');
 }
 function selectDay(id){
@@ -357,9 +380,21 @@ function renderMain(){
 
   if(day.history){ saveBar.style.display='none'; renderHistory(main); return; }
   if(day.running){ saveBar.style.display='none'; renderRunning(main); return; }
+  if(day.rest){
+    saveBar.style.display='none';
+    main.innerHTML = `<div class="day-head">
+        ${day.dayNum ? `<div class="day-num">${day.dayNum}</div>` : ''}
+        <div class="name">${day.name}</div>
+        <div class="focus">${day.focus}</div>
+        <div class="note">${day.note}</div>
+      </div>
+      <div class="empty">Día de descanso activo.<br>Sin registro de series hoy.</div>`;
+    return;
+  }
   saveBar.style.display='block';
 
   let html = `<div class="day-head">
+      ${day.dayNum ? `<div class="day-num">${day.dayNum}</div>` : ''}
       <div class="name">${day.name}</div>
       <div class="focus">${day.focus}</div>
       <div class="note">${day.note}</div>
